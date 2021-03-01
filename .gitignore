@@ -2,7 +2,8 @@
 .RData
 .Rhistory
 .Rapp.history
-
+.Rproj.user
+.Ruserdata
 
 # Temporary files
 *~
@@ -10,3 +11,7 @@
 ~$*.xls*
 *.xlk
 ~$*.ppt*
+
+#Navigating to a folder using the "Finder" on Mac generates a .DS_Store file holding metadata about the folder (e.g. thumbnails etc.). 
+#These files can pollute your git commits and are annoying.
+.DS_Store

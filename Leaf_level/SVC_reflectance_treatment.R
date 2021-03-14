@@ -4,12 +4,20 @@ library(dplyr)
 library(plyr)
 library(ggplot2)
 library(pavo)
-source("C:/Users/cyswong/Documents/ggtheme.R")
+source("C:/Users/cyswong/Documents/ggtheme.R") #need to find out why this is needed.
 
-meta <- read.csv("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/20201207_meta.csv",header = TRUE, fileEncoding="UTF-8-BOM")
-setwd("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/")
-file_list <- list.files("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/")
-file_list2 <- gsub(".*\\.(.*)\\..*", "\\1", file_list)
+meta <- read.csv("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/20201207_meta.csv",header = TRUE, fileEncoding="UTF-8-BOM") #this is the spreadsheet that identifies the scan number with the plant/leaf measurement. 
+
+
+# Collect and collate spectral data ---------------------------------------
+#set the working directory to the folder that contains the SVC data that corresponds to the meta data file. 
+setwd("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/") 
+
+#create a list of all the files in the reflectance folder. 
+file_list <- list.files("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/") 
+
+#clean up the file names and extract only the observation number(this is the scan number)
+file_list2 <- gsub(".*\\.(.*)\\..*", "\\1", file_list) 
 
 #file <- read.csv2("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201026/20201026.0012.sig", sep = "", header=F, skip = 30)
 
@@ -23,18 +31,20 @@ file_list2 <- gsub(".*\\.(.*)\\..*", "\\1", file_list)
 #   dataset <- cbind(dataset, temp_data)
 # }
 
+#This for-loop looks up the spectra data per file and binds it together
+
 dataset <- data.frame()
 for (i in 1:length(file_list)){
-  temp_data <- read.csv2(file_list[i], sep = "", header=F, skip = 30)
-  temp_data[1:4] <- lapply(temp_data[1:4], as.numeric)
-  temp_data <- as.rspec(temp_data,whichwl = "V1")
-  temp_data$id <- file_list2[i]
-  dataset <- rbind(dataset, temp_data)
+  temp_data <- read.csv2(file_list[i], sep = "", header=F, skip = 30) #skip the first 30 lines as it's just meta data from the instrument. 
+  temp_data[1:4] <- lapply(temp_data[1:4], as.numeric) #convert each column to numeric class
+  temp_data <- as.rspec(temp_data,whichwl = "V1") 
+  temp_data$id <- file_list2[i] #add a column that specifies the filename id of the fiel (this should include the observation/scan number which will be used to match the metadata)
+  dataset <- rbind(dataset, temp_data) #all data per file is bound to the "dataset" object. 
 }
 
-names(dataset) <- c("wavelength","reference","radiance","reflectance","scan")
+names(dataset) <- c("wavelength","reference","radiance","reflectance","scan") #add the names for the column 
 
-#dataset[,1:4] <- sapply(dataset[,1:4],as.numeric)
+#dataset[,1:4] <- sapply(dataset[,1:4],as.numeric) 
 
 meta$Leaf.1 <- str_pad(meta$Leaf.1, 4, pad = "0")
 meta$Leaf.2 <- str_pad(meta$Leaf.2, 4, pad = "0")

@@ -6,7 +6,17 @@ library(ggplot2)
 library(pavo)
 source("C:/Users/cyswong/Documents/ggtheme.R") #need to find out why this is needed.
 
-meta <- read.csv("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/20201207_meta.csv",header = TRUE, fileEncoding="UTF-8-BOM") #this is the spreadsheet that identifies the scan number with the plant/leaf measurement. 
+# Set paths for data import and R output files ----------------------------
+FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_07/"
+
+date = "20210507"
+
+workingDirectoryPath <- paste(FolderPath, "R_output", sep="")
+metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
+
+SVCfolderPath <- paste(FolderPath, "SVC", sep="")
+
+setwd(workingDirectoryPath) # Set working directory so that any output files will be saved here 
 
 
 # Collect and collate spectral data ---------------------------------------

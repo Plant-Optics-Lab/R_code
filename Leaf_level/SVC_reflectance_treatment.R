@@ -29,7 +29,9 @@ completeFun <- function(data, desiredCols) {
 }
 
 #Remove rows where there will be no leaf level data collected
-meta <- completeFun(meta, "weirdID")
+meta <- completeFun(meta, "SVCprefix") #This column might need to be changed. 
+
+
 
 #create a list of all the files in the reflectance folder. 
 file_list <- list.files("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/") 

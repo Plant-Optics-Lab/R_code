@@ -19,9 +19,17 @@ SVCfolderPath <- paste(FolderPath, "SVC", sep="")
 setwd(workingDirectoryPath) # Set working directory so that any output files will be saved here 
 
 
-# Collect and collate spectral data ---------------------------------------
-#set the working directory to the folder that contains the SVC data that corresponds to the meta data file. 
-setwd("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/") 
+# Import meta data --------------------------------------------------------
+#reading in the meta data. This might need to be included  - fileEncoding="UTF-8-BOM"
+meta <- read.csv(metaFilePath, header = TRUE)
+
+completeFun <- function(data, desiredCols) {
+  completeVec <- complete.cases(data[, desiredCols])
+  return(data[completeVec, ])
+}
+
+#Remove rows where there will be no leaf level data collected
+meta <- completeFun(meta, "weirdID")
 
 #create a list of all the files in the reflectance folder. 
 file_list <- list.files("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/") 

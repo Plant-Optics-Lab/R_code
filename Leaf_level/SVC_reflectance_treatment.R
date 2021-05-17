@@ -2,7 +2,7 @@ library(stringr)
 library(tidyr)
 library(dplyr)
 library(plyr)
-library(ggplot2)
+
 library(pavo)
 
 # Set paths for data import and R output files ----------------------------
@@ -30,34 +30,19 @@ completeFun <- function(data, desiredCols) {
 #Remove rows where there will be no leaf level data collected
 meta <- completeFun(meta, "SVCprefix") #This column might need to be changed. 
 
-
 #create a list of all the files in the reflectance folder. 
 file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 
-#clean up the file names and extract only the observation number(this is the scan number)
-file_list2 <- gsub(".*\\.(.*)\\..*", "\\1", file_list) 
+#This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped.  
+dataset <- data.frame() #create empty "dataset" dataframe 
+nfile_list = length(file_list)
 
-#file <- read.csv2("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201026/20201026.0012.sig", sep = "", header=F, skip = 30)
-
-# dataset <- data.frame(file[1])
-# names(dataset) <- "wavelength"
-# 
-# for (i in 1:length(file_list)){
-#   temp_data <- read.csv2(file_list[i], sep = "", header=F, skip = 30)
-#   temp_data <- temp_data[4]
-#   names(temp_data) <- file_list2[i]
-#   dataset <- cbind(dataset, temp_data)
-# }
-
-#This for-loop looks up the spectra data per file and binds it together
-
-dataset <- data.frame()
-for (i in 1:length(file_list)){
-  temp_data <- read.csv2(file_list[i], sep = "", header=F, skip = 30) #skip the first 30 lines as it's just meta data from the instrument. 
-  temp_data[1:4] <- lapply(temp_data[1:4], as.numeric) #convert each column to numeric class
-  temp_data <- as.rspec(temp_data,whichwl = "V1") 
-  temp_data$id <- file_list2[i] #add a column that specifies the filename id of the fiel (this should include the observation/scan number which will be used to match the metadata)
-  dataset <- rbind(dataset, temp_data) #all data per file is bound to the "dataset" object. 
+for (i in 1:nfile_list){
+  temp_data <- read.csv2(paste0(SVCfolderPath, '/', file_list[i]), sep = "", header=F, skip = 30)
+  temp_data[1:4] <- lapply(temp_data[1:4], as.numeric)
+  temp_data <- as.rspec(temp_data,whichwl = "V1")
+  temp_data$id <- prefixObs[i]
+  dataset <- rbind(dataset, temp_data)
 }
 
 names(dataset) <- c("wavelength","reference","radiance","reflectance","scan") #add the names for the column 

@@ -6,9 +6,9 @@ library(ggplot2)
 library(pavo)
 
 # Set paths for data import and R output files ----------------------------
-FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_07/"
+FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
 
-date = "20210507"
+date = "20210514"
 
 workingDirectoryPath <- paste(FolderPath, "R_output", sep="")
 metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
@@ -31,9 +31,8 @@ completeFun <- function(data, desiredCols) {
 meta <- completeFun(meta, "SVCprefix") #This column might need to be changed. 
 
 
-
 #create a list of all the files in the reflectance folder. 
-file_list <- list.files("C:/Users/cyswong/Documents/UCDavis/Forrestel_exp/Reflectance/20201207/") 
+file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 
 #clean up the file names and extract only the observation number(this is the scan number)
 file_list2 <- gsub(".*\\.(.*)\\..*", "\\1", file_list) 

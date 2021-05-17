@@ -8,6 +8,7 @@ library(stringr)
 FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
 
 date = "20210514"
+descripCol = c(1:12) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. If all treatment is the same, this could just a single column for sample ID or it could be a series of columns, e.g. treatment (pathogen/stress), genotype and individual. Please define which columns are simply describing your plants by creating a index per column. 
 
 workingDirectoryPath <- paste(FolderPath, "R_output", sep="")
 metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
@@ -58,7 +59,7 @@ for (i in 1:length(svcColsElement)){
   
 }
 
-data_long <- gather(meta[c(1:max(svcColsElement))], leaf, scan, SVC_1:SVC_3, factor_key=TRUE) #uses Tidyr package
+data_long <- gather(meta[c(descripCol, svcColsElement)], leaf, scan, SVC_1:SVC_3, factor_key=TRUE) #uses Tidyr package. We first gather all the data 
 
 data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. This removes any rows with no missing information for additional leaves.  
 

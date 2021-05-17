@@ -8,7 +8,7 @@ library(stringr)
 FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
 
 date = "20210514"
-descripCol = c(1:12) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. If all treatment is the same, this could just a single column for sample ID or it could be a series of columns, e.g. treatment (pathogen/stress), genotype and individual. Please define which columns are simply describing your plants by creating a index per column. 
+descripCol = c(1:13) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. If all treatment is the same, this could just a single column for sample ID or it could be a series of columns, e.g. treatment (pathogen/stress), genotype and individual. Please define which columns are simply describing your plants by creating a index per column. 
 
 workingDirectoryPath <- paste(FolderPath, "R_output", sep="")
 metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
@@ -59,17 +59,18 @@ for (i in 1:length(svcColsElement)){
   
 }
 
-data_long <- gather(meta[c(descripCol, svcColsElement)], leaf, scan, SVC_1:SVC_3, factor_key=TRUE) #uses Tidyr package. We first gather all the data 
+#reshape meta data to long form. uses Tidyr package. We first gather all the data (descripcol and the SVC columns). We define leaf from which SVC column the data was taken (e.g. SVC 1, 2 or 3). 
+data_long <- gather(meta[c(descripCol, svcColsElement)], leaf, scan, svcColNames[svcColsElement], factor_key=TRUE) 
 
 data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. This removes any rows with no missing information for additional leaves.  
 
-df_20 <- dplyr::left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #to ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrows of data_long)
+df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrows of data_long)
 
-
+#Summarise spectral data using dplyr. Currently there are three leaves scanned per plant(provided the plant was big enough). 
 df_20_long <- df_20 %>%
-  group_by(Pathogen, Entry, Actual_Plot, SVCprefix, wavelength) %>%
-  summarise(rfl_mean  = mean(reflectance, na.rm = TRUE), 
-            rfl_sd = sd(reflectance, na.rm = TRUE)
+  group_by(Pathogen, Entry, Actual_Plot, SVCprefix, wavelength) %>% #define the groups. We want to to average each wavelength, per plant
+  summarise(rfl_mean  = mean(reflectance, na.rm = TRUE), #get mean
+            rfl_sd = sd(reflectance, na.rm = TRUE) #get standard deviation
             )
 
 

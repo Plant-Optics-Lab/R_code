@@ -59,12 +59,12 @@ for (i in 1:length(svcColsElement)){
   
 }
 
-#reshape meta data to long form. uses Tidyr package. We first gather all the data (descripcol and the SVC columns). We define leaf from which SVC column the data was taken (e.g. SVC 1, 2 or 3). 
+#reshape meta data to long form. uses Tidyr package. We first gather all the data (descripcol and the SVC columns). We define leaf from which SVC column the data was taken (e.g. SVC 1, 2 or 3). To check that this worked okay, nrow(data_long) = nrow(meta)*length(svcColsElement).
 data_long <- gather(meta[c(descripCol, svcColsElement)], leaf, scan, svcColNames[svcColsElement], factor_key=TRUE) 
 
 data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. This removes any rows with no missing information for additional leaves.  
 
-df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrows of data_long)
+df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
 
 #Summarise spectral data using dplyr. Currently there are three leaves scanned per plant(provided the plant was big enough). 
 df_20_long <- df_20 %>%

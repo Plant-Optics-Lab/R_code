@@ -4,11 +4,19 @@ library(pavo)
 library(stringr)
 
 # Set paths for data import and R output files ----------------------------
-FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
+# This script is for wrangling and merging data observations with the SVC data. The following layout for the folder is required for the script to work. 
+#1. Create a new folder for your project. e.g. Jessie_Field_Strawberry. If you are taking measurements across multiple time points, you may want subfolders per measurement day. E.g. Jessie_Field_Strawberry -> 20210514. This will be the general "FolderPath" that R will use for extracting/exporting the data. 
+#2. Within the "FolderPath" folder:
+#a) Save the meta data file as a .csv file with the file name layout. "date"_DataEntry.csv. E.g. 20210514_DataEntry.csv.
+#b) Create a subfolder "SVC" and place all scans from the SVC in is
+#c) Create a subfolder "R_output". This is will be the working directory and to where all data will be exported. 
+#Please edit the following "FolderPath", "date" and "descripCol" so to match your project/computer.  
 
+FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
 date = "20210514"
 descripCol = c(1:13) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. If all treatment is the same, this could just a single column for sample ID or it could be a series of columns, e.g. treatment (pathogen/stress), genotype and individual. Please define which columns are simply describing your plants by creating a index per column. 
 
+# The following lines of code do not need to be adjusted. 
 workingDirectoryPath <- paste(FolderPath, "R_output", sep="")
 metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
 SVCfolderPath <- paste(FolderPath, "SVC", sep="")
@@ -26,10 +34,11 @@ completeFun <- function(data, desiredCols) {
 #Remove rows where there will be no leaf level data collected
 meta <- completeFun(meta, "SVCprefix") #This column might need to be changed. 
 
-#create a list of all the files in the reflectance folder. 
+# Import SVC data ---------------------------------------------------------
+# Create a list of all the files in the SVC folder. 
 file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 
-#This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped. Uses Pavo package
+# This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped. Uses Pavo package
 dataset <- data.frame() #create empty "dataset" dataframe 
 nfile_list = length(file_list) # get the number of files in the SVC folder
 
@@ -46,8 +55,8 @@ names(dataset) <- c("wavelength","reference","radiance","reflectance","SVC_RAW")
 dataset$scan <- str_sub(dataset$SVC_RAW, - 4, - 1)  #Uses stringr package. Grabs the last four digits which indicates scan number
 dataset$SVCprefix <- str_sub(dataset$SVC_RAW, 1, - 6)  #Uses stringr package. Grabs the SVC prefic that defines the date of measurement. 
 
-# Wrangle meta data -------------------------------------------------------
-#The meta data file is the data entry file for all measurements and includes description informaton on the samples e.g. with pathogen/geneotype etc. Additional measurements could include those from Li-600(stomatal conductance and Fluorescence). Given that we only need the data for the SVC, we will extract this data only and then reshape the data so that it can be combined with the actual spectra data. 
+# Wrangle meta data by adjusting scan number and reshap file-------------------------------------------------------
+#The meta data file is the data entry file for all measurements and includes description information on the samples e.g. with pathogen/genotype etc. Additional measurements could include those from Li-600(stomatal conductance and Fluorescence). Given that we only need the data for the SVC, we will extract this data only and then reshape the data so that it can be combined with the actual spectra data. 
 svcColNames = colnames(meta) #get all names of columns in the meta data file
 svcColsElement <- which(startsWith(colnames(meta), "SVC_")) #define where the SVC measurement numbers are in the spreadsheet. 
 
@@ -63,8 +72,7 @@ data_long <- gather(meta[c(descripCol, svcColsElement)], leaf, scan, svcColNames
 
 data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. This removes any rows with no missing information for additional leaves.  
 
-
-# Merge datasets and summarise spectral data ------------------------------
+# Merge datasets, summarise spectral data prepare final file for export ------------------------------
 
 df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
 
@@ -78,6 +86,8 @@ df_20_long <- df_20 %>%
 #Reshaping the spectral data to wide form. Currently, the data is in long form for the summarising process. When looking/plotting the data, it is easier for the data to be in wide format(one column per wavelength). Here we "spread" the wavelength and rfl_mean column using Tidyr.   
 df_20_wide <- spread(df_20_long[c(1:6)], wavelength, rfl_mean)
 
+
+# Export data -------------------------------------------------------------
 #export csv
 ExportFileName <- paste("SVC_", date, ".csv", sep="")
 write.csv(df_20_wide, ExportFileName, row.names = F)

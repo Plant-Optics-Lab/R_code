@@ -1,4 +1,3 @@
-
 library(dplyr)
 library(tidyr)
 library(pavo)
@@ -63,6 +62,10 @@ for (i in 1:length(svcColsElement)){
 data_long <- gather(meta[c(descripCol, svcColsElement)], leaf, scan, svcColNames[svcColsElement], factor_key=TRUE) 
 
 data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. This removes any rows with no missing information for additional leaves.  
+
+
+# Merge datasets and summarise spectral data ------------------------------
+
 
 df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
 

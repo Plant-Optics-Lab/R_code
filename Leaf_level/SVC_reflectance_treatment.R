@@ -75,10 +75,12 @@ df_20_long <- df_20 %>%
             rfl_sd = sd(reflectance, na.rm = TRUE) #get standard deviation
             )
 
+#Reshaping the spectral data to wide form. Currently, the data is in long form for the summarising process. When looking/plotting the data, it is easier for the data to be in wide format(one column per wavelength). Here we "spread" the wavelength and rfl_mean column using Tidyr.   
+df_20_wide <- spread(df_20_long[c(1:6)], wavelength, rfl_mean)
 
 #export csv
 ExportFileName <- paste("SVC_", date, ".csv", sep="")
-write.csv(df_20_long, ExportFileName, row.names = F)
+write.csv(df_20_wide, ExportFileName, row.names = F)
 
 
 

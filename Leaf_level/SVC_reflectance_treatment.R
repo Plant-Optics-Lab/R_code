@@ -1,8 +1,8 @@
 
-library(tidyr)
 library(dplyr)
 library(plyr)
 
+library(tidyr)
 library(pavo)
 library(stringr)
 
@@ -46,16 +46,26 @@ for (i in 1:nfile_list){
   dataset <- rbind(dataset, temp_data)
 }
 
-names(dataset) <- c("wavelength","reference","radiance","reflectance","scan") #add the names for the column 
+names(dataset) <- c("wavelength","reference","radiance","reflectance","SVC_RAW") #add the names for the column. SVC_RAW indicates the file from which the data was extracted. 
 
-dataset$scan <- str_sub(dataset$SVC_RAW, - 4, - 1)  #Uses stringr package
-dataset$SVCprefix <- str_sub(dataset$SVC_RAW, 1, - 6)  #Uses stringr package
+dataset$scan <- str_sub(dataset$SVC_RAW, - 4, - 1)  #Uses stringr package. Grabs the last four digits which indicates scan number
+dataset$SVCprefix <- str_sub(dataset$SVC_RAW, 1, - 6)  #Uses stringr package. Grabs the SVC prefic that defines the date of measurement. 
 
-meta$Leaf.1 <- str_pad(meta$Leaf.1, 4, pad = "0")
-meta$Leaf.2 <- str_pad(meta$Leaf.2, 4, pad = "0")
-meta$Leaf.3 <- str_pad(meta$Leaf.3, 4, pad = "0")
+# Wrangle meta data -------------------------------------------------------
+#The meta data file is the data entry file for all measurements and includes description informaton on the samples e.g. with pathogen/geneotype etc. Additional measurements could include those from Li-600(stomatal conductance and Fluorescence). Given that we only need the data for the SVC, we will extract this data only and then reshape the data so that it can be combined with the actual spectra data. 
+svcColNames = colnames(meta) #get all names of columns in the meta data file
+svcColsElement <- which(startsWith(colnames(meta), "SVC_")) #define where the SVC measurement numbers are in the spreadsheet. 
 
-data_long <- gather(meta, leaf, scan, Leaf.1:Leaf.3, factor_key=TRUE)
+for (i in 1:length(svcColsElement)){
+  
+  temp_data <-  svcColNames[svcColsElement[i]] #Get the SVC scan column
+  meta[,temp_data] <- str_pad(meta[,temp_data], 4, pad = "0") #add 0s so that the scan number matches that from the SVC file
+  
+}
+
+data_long <- gather(meta[c(1:max(svcColsElement))], leaf, scan, SVC_1:SVC_3, factor_key=TRUE) #uses Tidyr package
+
+data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. 
 
 df_20 <- merge(data.frame(dataset), data_long, by = "scan") 
 

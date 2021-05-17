@@ -66,7 +66,6 @@ data_long <- completeFun(data_long, "scan") #not every plant will have the same 
 
 # Merge datasets and summarise spectral data ------------------------------
 
-
 df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
 
 #Summarise spectral data using dplyr. Currently there are three leaves scanned per plant(provided the plant was big enough). 
@@ -76,9 +75,10 @@ df_20_long <- df_20 %>%
             rfl_sd = sd(reflectance, na.rm = TRUE) #get standard deviation
             )
 
+
 #export csv
-write.csv(df_20_long,'20_long.csv')
-write.csv(df_20_wide,'20_wide.csv')
+ExportFileName <- paste("SVC_", date, ".csv", sep="")
+write.csv(df_20_long, ExportFileName, row.names = F)
 
 
 

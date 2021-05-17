@@ -4,7 +4,6 @@ library(dplyr)
 library(plyr)
 library(ggplot2)
 library(pavo)
-source("C:/Users/cyswong/Documents/ggtheme.R") #need to find out why this is needed.
 
 # Set paths for data import and R output files ----------------------------
 FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_07/"

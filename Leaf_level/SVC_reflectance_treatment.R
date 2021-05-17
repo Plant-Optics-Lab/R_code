@@ -1,9 +1,10 @@
-library(stringr)
+
 library(tidyr)
 library(dplyr)
 library(plyr)
 
 library(pavo)
+library(stringr)
 
 # Set paths for data import and R output files ----------------------------
 FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
@@ -33,9 +34,9 @@ meta <- completeFun(meta, "SVCprefix") #This column might need to be changed.
 #create a list of all the files in the reflectance folder. 
 file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 
-#This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped.  
+#This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped. Uses Pavo package
 dataset <- data.frame() #create empty "dataset" dataframe 
-nfile_list = length(file_list)
+nfile_list = length(file_list) # get the number of files in the SVC folder
 
 for (i in 1:nfile_list){
   temp_data <- read.csv2(paste0(SVCfolderPath, '/', file_list[i]), sep = "", header=F, skip = 30)
@@ -47,7 +48,8 @@ for (i in 1:nfile_list){
 
 names(dataset) <- c("wavelength","reference","radiance","reflectance","scan") #add the names for the column 
 
-#dataset[,1:4] <- sapply(dataset[,1:4],as.numeric) 
+dataset$scan <- str_sub(dataset$SVC_RAW, - 4, - 1)  #Uses stringr package
+dataset$SVCprefix <- str_sub(dataset$SVC_RAW, 1, - 6)  #Uses stringr package
 
 meta$Leaf.1 <- str_pad(meta$Leaf.1, 4, pad = "0")
 meta$Leaf.2 <- str_pad(meta$Leaf.2, 4, pad = "0")

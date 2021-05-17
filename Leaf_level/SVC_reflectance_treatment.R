@@ -1,7 +1,5 @@
 
 library(dplyr)
-library(plyr)
-
 library(tidyr)
 library(pavo)
 library(stringr)
@@ -65,16 +63,17 @@ for (i in 1:length(svcColsElement)){
 
 data_long <- gather(meta[c(1:max(svcColsElement))], leaf, scan, SVC_1:SVC_3, factor_key=TRUE) #uses Tidyr package
 
-data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. 
+data_long <- completeFun(data_long, "scan") #not every plant will have the same number of leaves measured. For example, you could plan to measure three leaves per plant but then you have a really small plant with only one leaf for measuring. This removes any rows with no missing information for additional leaves.  
 
-df_20 <- merge(data.frame(dataset), data_long, by = "scan") 
+df_20 <- dplyr::left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #to ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrows of data_long)
 
-df_20_long <- ddply(df_20, c('ID','wavelength',"Genotype",'Treatment'), summarise,
-             rfl_mean  = mean(reflectance, na.rm = TRUE),
-             rfl_sd = sd(reflectance, na.rm = TRUE)
-             )
 
-df_20_long$date <- as.Date("2020-12-07")
+df_20_long <- df_20 %>%
+  group_by(Pathogen, Entry, Actual_Plot, SVCprefix, wavelength) %>%
+  summarise(rfl_mean  = mean(reflectance, na.rm = TRUE), 
+            rfl_sd = sd(reflectance, na.rm = TRUE)
+            )
+
 
 plt_spectall <- ggplot(df_20, aes(x=wavelength,y=reflectance,color=interaction(ID,leaf))) +   #Or color = ID
   geom_line(show.legend = F,size=.5)+

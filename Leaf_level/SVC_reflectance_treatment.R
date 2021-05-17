@@ -11,11 +11,8 @@ date = "20210514"
 
 workingDirectoryPath <- paste(FolderPath, "R_output", sep="")
 metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
-
 SVCfolderPath <- paste(FolderPath, "SVC", sep="")
-
 setwd(workingDirectoryPath) # Set working directory so that any output files will be saved here 
-
 
 # Import meta data --------------------------------------------------------
 #reading in the meta data. This might need to be included  - fileEncoding="UTF-8-BOM"

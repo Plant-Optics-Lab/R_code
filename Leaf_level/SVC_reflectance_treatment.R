@@ -73,51 +73,6 @@ df_20_long <- df_20 %>%
             rfl_sd = sd(reflectance, na.rm = TRUE) #get standard deviation
             )
 
-
-plt_spectall <- ggplot(df_20, aes(x=wavelength,y=reflectance,color=interaction(ID,leaf))) +   #Or color = ID
-  geom_line(show.legend = F,size=.5)+
-  scale_y_continuous(bquote("Reflectance (%)"),limits = c(0,70), breaks = seq(0,70,20))+
-  scale_x_continuous("Wavelength (nm)",limits = c(300,2500), breaks = seq(300,2500,400))+
-  theme.gg.leg+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+
-  facet_wrap(~Genotype)
-
-cbbPalette <- c("#000000", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7","#999999","#FF9999")
-
-plt_specid <- ggplot(df_20_long, aes(x=wavelength,y=rfl_mean,color=as.factor(ID))) +
-  geom_line(show.legend = F) +
-  scale_y_continuous(bquote("Reflectance (%)"),limits = c(0,70), breaks = seq(0,70,20))+
-  scale_x_continuous("Wavelength (nm)",limits = c(300,2500), breaks = seq(300,2500,400))+
-  scale_color_manual(values=rep(cbbPalette, 30))+
-  theme.gg.leg+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))+
-  facet_wrap(~Genotype)
-
-df3 <- subset(df_20, select = -c(scan,Block,Order.within.block,reference, radiance))
-df_20_wide <- reshape(df3, idvar = c("leaf","ID","Genotype","Treatment"), timevar = "wavelength", direction = "wide")
-
-df_20_wide$NDVI <- (df_20_wide$reflectance.800 - df_20_wide$reflectance.680) / (df_20_wide$reflectance.800 + df_20_wide$reflectance.680)
-df_20_wide$PRI <- (df_20_wide$reflectance.531 - df_20_wide$reflectance.570) / (df_20_wide$reflectance.531 + df_20_wide$reflectance.570)
-df_20_wide$date <- as.Date("2020-12-07")
-
-#Boxplot for plot.id
-plt_PRI <- ggplot(df_20_wide,aes(Genotype,PRI))+      
-  geom_boxplot(outlier.shape = NA)+
-  geom_jitter(width = 0, aes(colour = interaction(ID,leaf)),size = 1.5, show.legend = FALSE)+
-  scale_y_continuous(bquote("PRI"),limits = c(-.2,.1), breaks = seq(-.2,.1,.05))+
-  theme.gg.leg+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
-  facet_wrap(~Treatment)
-
-plt_NDVI <- ggplot(df_20_wide,aes(Genotype,NDVI))+      
-  geom_boxplot(outlier.shape = NA)+
-  geom_jitter(width = 0, aes(colour = interaction(ID,leaf)),size = 1.5, show.legend = FALSE)+
-  scale_y_continuous(bquote("NDVI"),limits = c(.6,1), breaks = seq(.6,1,.1))+
-  theme.gg.leg+
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))+
-  facet_wrap(~Treatment)
-
-
 #export csv
 write.csv(df_20_long,'20_long.csv')
 write.csv(df_20_wide,'20_wide.csv')

@@ -42,7 +42,7 @@ meta <- completeFun(meta, "SVCprefix") #This column might need to be changed.
 file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 
 # This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped. Uses Pavo package
-dataset <- data.frame() #create empty "dataset" dataframe 
+spectralData <- data.frame() #create empty "spectralData" dataframe 
 nfile_list = length(file_list) # get the number of files in the SVC folder
 prefixObs <- gsub('.{4}$', '', file_list) #Cleans up the file name so that the prefix of the SVC and observation number are extracted only. 
 
@@ -51,15 +51,15 @@ for (i in 1:nfile_list){
   temp_data[1:4] <- lapply(temp_data[1:4], as.numeric)
   temp_data <- as.rspec(temp_data,whichwl = "V1")
   temp_data$id <- prefixObs[i]
-  dataset <- rbind(dataset, temp_data)
+  spectralData <- rbind(spectralData, temp_data)
 }
 
-names(dataset) <- c("wavelength","reference","radiance","reflectance","SVC_RAW") #add the names for the column. SVC_RAW indicates the file from which the data was extracted. 
+names(spectralData) <- c("wavelength","reference","radiance","reflectance","SVC_RAW") #add the names for the column. SVC_RAW indicates the file from which the data was extracted. 
 
-dataset$scan <- str_sub(dataset$SVC_RAW, - 4, - 1)  #Uses stringr package. Grabs the last four digits which indicates scan number
-dataset$SVCprefix <- str_sub(dataset$SVC_RAW, 1, - 6)  #Uses stringr package. Grabs the SVC prefic that defines the date of measurement. 
+spectralData$scan <- str_sub(spectralData$SVC_RAW, - 4, - 1)  #Uses stringr package. Grabs the last four digits which indicates scan number
+spectralData$SVCprefix <- str_sub(spectralData$SVC_RAW, 1, - 6)  #Uses stringr package. Grabs the SVC prefic that defines the date of measurement. 
 
-# Wrangle meta data by adjusting scan number and reshap file-------------------------------------------------------
+# Wrangle meta data by adjusting scan number and reshape file-------------------------------------------------------
 #The meta data file is the data entry file for all measurements and includes description information on the samples e.g. with pathogen/genotype etc. Additional measurements could include those from Li-600(stomatal conductance and Fluorescence). Given that we only need the data for the SVC, we will extract this data only and then reshape the data so that it can be combined with the actual spectra data. 
 svcColNames = colnames(meta) #get all names of columns in the meta data file
 svcColsElement <- which(startsWith(colnames(meta), "SVC_")) #define where the SVC measurement numbers are in the spreadsheet. 
@@ -78,7 +78,7 @@ data_long <- completeFun(data_long, "scan") #not every plant will have the same 
 
 # Merge datasets, summarise spectral data prepare final file for export ------------------------------
 
-df_20 <- left_join(data_long, data.frame(dataset), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
+df_20 <- left_join(data_long, data.frame(spectralData), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
 
 #Summarise spectral data using dplyr. Currently there are three leaves scanned per plant(provided the plant was big enough). 
 df_20_long <- df_20 %>%

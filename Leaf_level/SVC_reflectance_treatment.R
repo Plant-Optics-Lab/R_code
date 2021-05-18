@@ -94,7 +94,7 @@ metaSpectraWide <- spread(metaSpectraLong[c(1:6)], wavelength, rfl_mean)
 # Export data -------------------------------------------------------------
 #export csv
 ExportFileName <- paste("SVC_", date, ".csv", sep="")
-write.csv(df_20_wide, ExportFileName, row.names = F)
+write.csv(metaSpectraWide, ExportFileName, row.names = F)
 
 
 

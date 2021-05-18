@@ -41,6 +41,7 @@ file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 # This is a for loop that pulls out the necessary spectral data from each .sig file and then binds the rows together. For these .sig files, the first 30 rows contain metadata and should be skipped. Uses Pavo package
 dataset <- data.frame() #create empty "dataset" dataframe 
 nfile_list = length(file_list) # get the number of files in the SVC folder
+prefixObs <- gsub('.{4}$', '', file_list) #Cleans up the file name so that the prefix of the SVC and observation number are extracted only. 
 
 for (i in 1:nfile_list){
   temp_data <- read.csv2(paste0(SVCfolderPath, '/', file_list[i]), sep = "", header=F, skip = 30)

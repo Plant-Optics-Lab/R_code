@@ -78,17 +78,17 @@ metaLong <- completeFun(metaLong, "scan") #not every plant will have the same nu
 
 # Merge datasets, summarise spectral data prepare final file for export ------------------------------
 
-mergedDf <- left_join(metaLong, data.frame(spectralData), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
+mergeMetaSpectra <- left_join(metaLong, data.frame(spectralData), by = c("SVCprefix", "scan")) #Uses dplyr. To ensure this has worked correctly, divide the number of rows of this object by 2177(the number of wavelengths for the SVC). e.g. nrow(df_20)/2177. This number should equal number of individual scans you should have (nrow(data_long))
 
 #Summarise spectral data using dplyr. Currently there are three leaves scanned per plant(provided the plant was big enough). 
-df_20_long <- mergedDf %>%
+metaSpectraLong <- mergeMetaSpectra %>%
   group_by(Pathogen, Entry, Actual_Plot, SVCprefix, wavelength) %>% #define the groups. We want to to average each wavelength, per plant
   summarise(rfl_mean  = mean(reflectance, na.rm = TRUE), #get mean
             rfl_sd = sd(reflectance, na.rm = TRUE) #get standard deviation
             )
 
 #Reshaping the spectral data to wide form. Currently, the data is in long form for the summarising process. When looking/plotting the data, it is easier for the data to be in wide format(one column per wavelength). Here we "spread" the wavelength and rfl_mean column using Tidyr.   
-df_20_wide <- spread(df_20_long[c(1:6)], wavelength, rfl_mean)
+metaSpectraWide <- spread(metaSpectraLong[c(1:6)], wavelength, rfl_mean)
 
 
 # Export data -------------------------------------------------------------

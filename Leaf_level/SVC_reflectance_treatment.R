@@ -5,7 +5,8 @@ library(stringr)
 
 # Set paths for data import and R output files ----------------------------
 # This script is for wrangling and merging data observations with the SVC data. The following layout for the folder is required for the script to work. 
-#1. Create a new folder for your project. e.g. Jessie_Field_Strawberry. If you are taking measurements across multiple time points, you may want subfolders per measurement day. E.g. Jessie_Field_Strawberry -> 20210514. This will be the general "FolderPath" that R will use for extracting/exporting the data. 
+#1. Create a new folder for your project. e.g. Jessie_Field_Strawberry. If you are taking measurements across multiple time points, you may want subfolders per measurement day. E.g. Jessie_Field_Strawberry -> 20210514. This will be the general "FolderPath" that R will 
+# use for extracting/exporting the data. 
 #2. Within the "FolderPath" folder:
 #a) Save the meta data file as a .csv file with the file name layout. "date"_DataEntry.csv. E.g. 20210514_DataEntry.csv.
 #b) Create a subfolder "SVC" and place all scans from the SVC in is
@@ -14,7 +15,9 @@ library(stringr)
 
 FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
 date = "20210514"
-descripCol = c(1:13) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. If all treatment is the same, this could just a single column for sample ID or it could be a series of columns, e.g. treatment (pathogen/stress), genotype and individual. Please define which columns are simply describing your plants by creating a index per column. 
+descripCol = c(1:13) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. 
+#If treatments are the same, this could just a single column (just sample ID) or it could be a series of columns, e.g. treatment (pathogen/stress), genotype, phenotype or/and individual. 
+# Please define which columns are simply describing your plants by creating a index for the description columns. 
 
 # The following lines of code do not need to be adjusted. 
 workingDirectoryPath <- paste(FolderPath, "R_output", sep="")

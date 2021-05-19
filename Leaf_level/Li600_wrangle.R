@@ -19,6 +19,12 @@ metaFilePath <- paste(FolderPath, date, "_DataEntry.csv", sep="")
 Li600folderPath <- paste(FolderPath, "Li-600", sep="")
 setwd(workingDirectoryPath) # Set working directory so that any output files will be saved here 
 
+# Import Li-600 data ------------------------------------------------------
+file <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_07/Li-600/Auto_gsw+F_LI_COR_Default_2021_05_10T22_06_37_305Z_1.csv"
+headers = read.csv(file, skip = 1, header = F, nrows = 1, as.is = T)
+Li600 <- read.csv(file, skip = 3, header = F)
+colnames(Li600)= headers
+
 # Import meta data --------------------------------------------------------
 #reading in the meta data. This might need to be included  - fileEncoding="UTF-8-BOM"
 meta <- read.csv(metaFilePath, header = TRUE)
@@ -31,9 +37,23 @@ completeFun <- function(data, desiredCols) {
 #Remove rows where there will be no leaf level data collected
 meta <- completeFun(meta, "SVCprefix") #This column might need to be changed. 
 
+# Wrangle meta data -------------------------------------------------------
 
-# Import Li-600 data ------------------------------------------------------
-Li600 <- read.csv("/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_07/Li-600/Auto_gsw+F_LI_COR_Default_2021_05_10T22_06_37_305Z_1.csv")
+fluColNames = colnames(meta)
+fluColsElement <- which(startsWith(colnames(meta), "FLU_"))
+
+for (i in 1:length(fluColsElement)){
+  
+  temp_data <-  fluColNames[fluColsElement[i]] #Get the SVC scan column
+  meta[,temp_data] <- str_pad(meta[,temp_data], 4, pad = "0") #add 0s so that the scan number matches that from the SVC file
+  
+}
+
+data_long <- gather(meta[c(1:max(fluColsElement))], leaf, scan, FLU_1:FLU_3, factor_key=TRUE)
+data_long <- completeFun(data_long, "scan") #to ensure this has worked correctly, divide the number of rows of this object by the number of individual scans you should have. It should equal 2177 (the number of wavelengths for the SVC)
+
+
+
 
 
 

@@ -7,7 +7,7 @@ library(stringr)
 
 # Set paths for data import and R output files ----------------------------
 # This script is for wrangling and merging data observations with the SVC data. The following layout for the folder is required for the script to work. 
-#1. Create a new folder for your project. e.g. Jessie_Field_Strawberry. If you are taking measurements across multiple time points, you may want subfolders per measurement day. E.g. Jessie_Field_Strawberry -> 20210514. This will be the general "FolderPath" that R will 
+#1. Create a new folder for your project. e.g. Jessie_Field_Strawberry. If you are taking measurements across multiple time points, you may want subfolders per measurement day. E.g. Jessie_Field_Strawberry -> 20210514. This will be the general "FolderPath" that R will use for reading in your data. 
 # use for extracting/exporting the data. 
 #2. Within the "FolderPath" folder:
 #a) Save the meta data file as a .csv file with the file name layout. "date"_DataEntry.csv. E.g. 20210514_DataEntry.csv.

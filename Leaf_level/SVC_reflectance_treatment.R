@@ -90,6 +90,8 @@ metaSpectraLong <- mergeMetaSpectra %>%
 #Reshaping the spectral data to wide form. Currently, the data is in long form for the summarising process. When looking/plotting the data, it is easier for the data to be in wide format(one column per wavelength). Here we "spread" the wavelength and rfl_mean column using Tidyr.   
 metaSpectraWide <- spread(metaSpectraLong[c(1:6)], wavelength, rfl_mean)
 
+indicesSVC
+
 
 # Export data -------------------------------------------------------------
 #export csv

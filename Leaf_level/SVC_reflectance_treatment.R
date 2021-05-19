@@ -90,6 +90,7 @@ metaSpectraLong <- mergeMetaSpectra %>%
 #Reshaping the spectral data to wide form. Currently, the data is in long form for the summarising process. When looking/plotting the data, it is easier for the data to be in wide format(one column per wavelength). Here we "spread" the wavelength and rfl_mean column using Tidyr.   
 metaSpectraWide <- spread(metaSpectraLong[c(1:6)], wavelength, rfl_mean)
 
+#Prepare dataframe with calculated indices. NDVI and PRI
 indicesSVC <- as.data.frame(metaSpectraWide[c(1:4)])
 indicesSVC$NDVI <- (metaSpectraWide$`800`-metaSpectraWide$`680`)/(metaSpectraWide$`800`+metaSpectraWide$`680`)
 indicesSVC$PRI <- (metaSpectraWide$`531`-metaSpectraWide$`570`)/(metaSpectraWide$`531`+metaSpectraWide$`531`)

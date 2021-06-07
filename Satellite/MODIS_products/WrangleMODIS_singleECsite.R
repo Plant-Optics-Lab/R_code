@@ -1,0 +1,1 @@
+#This script is for wrangling MODIS data collected from tutorial "HowToAccessMODISdata". 

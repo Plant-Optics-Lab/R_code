@@ -10,17 +10,15 @@
 library(ggplot2)
 library(dplyr)
 library(lubridate)
-
+library(data.table) #this is a faster approach to importing from csv. 
 
 # Import Data and set working directory -----------------------------------
 setwd("/Users/jessie/Documents/2020/Data/MODIS/CZO2/")
-library(data.table)
 
 ValuesData <- fread("filtered_scaled_Gpp_500m.csv", select = c(6:294))
 TimeData <- fread("filtered_scaled_Gpp_500m.csv", select = c(1:5))
 
-ValuesData1 <- lapply(ValuesData, function(x) as.numeric(x))
-# Aggregate data ----------------------------------------------------------
+# Create time columns ----------------------------------------------------------
 
 tdata <- transform(TimeData, Year = substr(V3, 2, 5), DayOfYear = substr(V3, 6, 8))
 tdata$Year <- as.numeric(tdata$Year)
@@ -29,7 +27,10 @@ tdata$DayOfYear <- as.numeric(tdata$DayOfYear)
 
 tdata$date <- as.Date(tdata$DayOfYear, origin = originList)
 tdata$month <- lubridate::month(tdata$date) #create month column
-aggData <- aggregate(x = as.numeric(GPP[6:294], na.omit =T), by = list(data$Year, data$month), FUN = sum)
+
+
+# Summarise MODIS data to month -------------------------------------------
+ValuesList <- lapply(cbind(tdata$Year, tdata$month, ValuesData), function(x) as.numeric(x)) #convert all columns to numeric
 
 
 

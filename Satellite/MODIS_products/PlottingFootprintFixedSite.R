@@ -21,19 +21,16 @@ TimeData <- fread("filtered_scaled_Gpp_500m.csv", select = c(1:5))
 # Create time columns ----------------------------------------------------------
 
 tdata <- transform(TimeData, Year = substr(V3, 2, 5), DayOfYear = substr(V3, 6, 8))
-tdata$Year <- as.numeric(tdata$Year)
+Year <- as.numeric(tdata$Year)
 originList <- paste0(tdata$Year, "-01-01")
 tdata$DayOfYear <- as.numeric(tdata$DayOfYear)
-
 tdata$date <- as.Date(tdata$DayOfYear, origin = originList)
-tdata$month <- lubridate::month(tdata$date) #create month column
+month <- lubridate::month(tdata$date) #create month column
 
 # Summarise MODIS data to month -------------------------------------------
 ValuesList <- lapply( ValuesData, function(x) as.numeric(x)) #convert all columns to numeric
 df <- data.frame(t(matrix(unlist(ValuesList), nrow=ncol(ValuesData), byrow=TRUE)))
 
-Year = tdata$Year
-month = tdata$month
 combined = cbind(Year, month, df)
 
 summarisedDF <- combined %>% 

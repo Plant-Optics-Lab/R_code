@@ -28,11 +28,17 @@ tdata$DayOfYear <- as.numeric(tdata$DayOfYear)
 tdata$date <- as.Date(tdata$DayOfYear, origin = originList)
 tdata$month <- lubridate::month(tdata$date) #create month column
 
-
 # Summarise MODIS data to month -------------------------------------------
-ValuesList <- lapply(cbind(tdata$Year, tdata$month, ValuesData), function(x) as.numeric(x)) #convert all columns to numeric
+ValuesList <- lapply( ValuesData, function(x) as.numeric(x)) #convert all columns to numeric
+df <- data.frame(t(matrix(unlist(ValuesList), nrow=ncol(ValuesData), byrow=TRUE)))
 
+Year = tdata$Year
+month = tdata$month
+combined = cbind(Year, month, df)
 
+summarisedDF <- combined %>% 
+                group_by(Year, month) %>% 
+                summarise(across(X1:X289, mean))
 
 # Plot footprint ----------------------------------------------------------
 

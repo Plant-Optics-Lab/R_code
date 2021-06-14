@@ -19,22 +19,19 @@ rawData <- rawData_orig #create copy of rawData file which will be used for work
 MODIScol = rawData %>% #Get the names of the columns with MODIS values. We will have to clean up the data later
   select(V6:V294) %>%
   names
-# Create time columns and convert raw values columns to numeric ----------------------------------------------------------
+# Create time columns, convert raw values columns to numeric, summarise raw data ----------------------------------------------------------
 GPPrescale <- function(x) {(as.numeric(x)*1000)/8} #this is a function to convert the raw data to GPP values. If you are using a different MODIS product, you will need to adjust this function. 
 
-manipulateData <- rawData %>%
+summarisedDF <- rawData %>%
   dplyr::mutate(Year = as.numeric(paste(str_sub(V3, 2, 5))), 
                 DayOfYear = as.numeric(str_sub(V3, 6, 8)), 
                 originList = paste(Year, "-01-01", sep = ""), #this is used for converting year and column to date
                 Date = as.Date(DayOfYear, origin = originList), 
                 month = lubridate::month(Date), 
-                across(MODIScol, GPPrescale)) #warnings will pop up if there are non-numeric values as they get converted to "NA". This warning is fine because we want to remove any chanracters in the dataset.
+                across(MODIScol, GPPrescale)) %>% #warnings will pop up if there are non-numeric values as they get converted to "NA". This warning is fine because we want to remove any chanracters in the dataset.
+                        group_by(Year, month) %>% 
+                        summarise(across(V6:V294, mean, na.rm = T)) #get the mean per column of data, removing NAs is important
 
-
-# Summarise MODIS data to month -------------------------------------------
-summarisedDF <- manipulateData %>% 
-                group_by(Year, month) %>% 
-                summarise(across(V6:V294, mean, na.rm = T)) #get the mean per column of data, removing NAs is important
 
 # Plot footprint ----------------------------------------------------------
 dfx = as.data.frame(matrix(0, 289, 2)) #create zeros dataframe for coordinates of plot

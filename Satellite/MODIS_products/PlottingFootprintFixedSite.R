@@ -7,20 +7,20 @@
 
 
 # Load libraries ----------------------------------------------------------
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 library(lubridate)
 library(data.table) #this is a faster approach to importing from csv. 
-library(tidyr)
 
 # Import Data and set working directory -----------------------------------
 setwd("/Users/jessie/Documents/2020/Data/MODIS/CZO2/")
 
-rawData <- fread("filtered_scaled_Gpp_500m.csv")
+rawData_orig <- fread("filtered_scaled_Gpp_500m.csv") #import original rawdata
+rawData <- rawData_orig #create copy of rawData file which will be used for working with the data
 
 # Create time columns ----------------------------------------------------------
+test <- rawData %>%
+  dplyr::mutate(Year = str_sub(V3, 2, 5), DayOfYear = str_sub(V3, 6, 8))
 
-tdata <- transform(rawData, Year = substr(V3, 2, 5), DayOfYear = substr(V3, 6, 8))
 Year <- as.numeric(tdata$Year)
 originList <- paste0(tdata$Year, "-01-01")
 tdata$DayOfYear <- as.numeric(tdata$DayOfYear)

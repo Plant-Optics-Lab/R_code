@@ -11,16 +11,16 @@ library(ggplot2)
 library(dplyr)
 library(lubridate)
 library(data.table) #this is a faster approach to importing from csv. 
+library(tidyr)
 
 # Import Data and set working directory -----------------------------------
 setwd("/Users/jessie/Documents/2020/Data/MODIS/CZO2/")
 
-ValuesData <- fread("filtered_scaled_Gpp_500m.csv", select = c(6:294))
-TimeData <- fread("filtered_scaled_Gpp_500m.csv", select = c(1:5))
+rawData <- fread("filtered_scaled_Gpp_500m.csv")
 
 # Create time columns ----------------------------------------------------------
 
-tdata <- transform(TimeData, Year = substr(V3, 2, 5), DayOfYear = substr(V3, 6, 8))
+tdata <- transform(rawData, Year = substr(V3, 2, 5), DayOfYear = substr(V3, 6, 8))
 Year <- as.numeric(tdata$Year)
 originList <- paste0(tdata$Year, "-01-01")
 tdata$DayOfYear <- as.numeric(tdata$DayOfYear)
@@ -28,15 +28,123 @@ tdata$date <- as.Date(tdata$DayOfYear, origin = originList)
 month <- lubridate::month(tdata$date) #create month column
 
 # Summarise MODIS data to month -------------------------------------------
-ValuesList <- lapply( ValuesData, function(x) as.numeric(x)) #convert all columns to numeric
-df <- data.frame(t(matrix(unlist(ValuesList), nrow=ncol(ValuesData), byrow=TRUE)))
+ValuesList <- lapply(rawData[,6:294], function(x) as.numeric(x)) #convert all columns to numeric
+df <- data.frame(t(matrix(unlist(ValuesList), nrow=289, byrow=TRUE)))
+dfscaled <- (df*1000)/8 #convert data to g C per day
 
-combined = cbind(Year, month, df)
+combined = cbind(Year, month, dfscaled)
 
 summarisedDF <- combined %>% 
                 group_by(Year, month) %>% 
-                summarise(across(X1:X289, mean))
+                summarise(across(X1:X289, mean, na.rm = T)) #get the mean per column of data, removing NAs is important
 
 # Plot footprint ----------------------------------------------------------
+dfx = as.data.frame(matrix(0, 289, 2)) #create zeros dataframe for coordinates of plot
+for (i in 1:17){
+  for(j in 1:17) {
+    count = (i-1) * 17 + j
+    dfx[count, 1] =i
+    dfx[count, 2] =j
+  }
+}#create coordinates for tile plot
+names(dfx) <- c("ycoor", "xcoor")
+summarisedDFsubset <- summarisedDF[summarisedDF$month==9, ] #subset data to look at just one month
+
+for (i in 1:21){
+rownum = i
+df2 <- df
+  
+df2[,3] = unlist(summarisedDFsubset[rownum,c(3:291)])
+
+# plot with geom_tiles
+plot <- ggplot(data=df2,aes(x=V1,y=V2,fill=V3))+
+  geom_tile()+
+  geom_point(aes(x=9, y=9), colour="white", shape = 23, fill = "white", size=6)+ #plotting the flux tower
+  xlab("")+
+  ylab("")+
+  scale_fill_gradientn(colours = rainbow(4), limits=c(1, 8))+
+  xlim(1, 17)+
+  ylim(1, 17)+
+  ggtitle(paste0(summarisedDFsubset[rownum, "Year"], "_", summarisedDFsubset[rownum, "month"]))+
+  theme_bw() +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(), axis.ticks.y = element_blank(),
+        axis.text.y = element_blank())
+
+pdf(paste0(rownum, ".pdf"))
+print(plot)
+dev.off()
+}
+
+plot_tiles <- function(dfLong, dfWide, rownum){
+  plot <- ggplot(data=dfLong,aes(x=V1,y=V2,fill=V3))+
+    geom_tile()+
+    geom_point(aes(x=9, y=9), colour="black", shape = 23, fill = "white", size=6)+
+    xlab("")+
+    ylab("")+
+    scale_fill_gradientn(colours = rainbow(4), limits=c(1, 8), name = "GPP")+
+    xlim(1, 17)+
+    ylim(1, 17)+
+    ggtitle(paste0(dfWide[rownum, "Year"], "_",dfWide[rownum, "month"]))+
+     theme_bw() +
+    #remove plot background
+    theme(plot.background=element_blank(),
+    #remove plot border
+    panel.border=element_blank(), 
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    axis.ticks.x = element_blank(), axis.text.x = element_blank(), 
+    axis.ticks.y = element_blank(), axis.text.y = element_blank())
+  plot
+  # pdf(paste0(rownum, ".pdf"))
+  # print(plot)
+  # dev.off()
+}
 
 
+plot_tiles(df2, summarisedDFsubset, 8)
+summarisedDFsubset <- summarisedDF[summarisedDF$month==7, ] #subset data to look at just one month
+
+
+for(i in 1:12){
+  monthNum = i
+  
+summarisedDFsubset <- summarisedDF[summarisedDF$month==monthNum, ] #subset data to look at just one month
+
+numRows = nrow(summarisedDFsubset)
+emptydf=as.data.frame(matrix(0, 289, numRows))
+for (i in 1:numRows){
+  rownum = i
+  emptydf[,i] = unlist(summarisedDFsubset[rownum,c(3:291)]) 
+}
+summarisedDFsubset$timeID <- paste0(summarisedDFsubset$Year, "_", summarisedDFsubset$month)
+names(emptydf) <- summarisedDFsubset$timeID
+
+x = cbind(dfx, emptydf)
+
+dfx$combined <- paste0(dfx$ycoor, "_", dfx$xcoor)
+data_long <- gather(x, time, combined, names(emptydf)[1]: tail(names(emptydf), n=1), factor_key=TRUE)
+
+plot = ggplot(data=data_long,aes(x=xcoor,y=ycoor,fill=combined))+
+  geom_tile()+
+  geom_point(aes(x=9, y=9), colour="white", shape = 23, fill = "white", size=4)+ #plotting the flux tower
+  xlab("")+
+  ylab("")+
+  scale_fill_gradientn(colours = rainbow(4), limits=c(1, 8), name = "GPP")+
+  xlim(1, 17)+
+  ylim(1, 17)+
+  #ggtitle(paste0(summarisedDFsubset[rownum, "Year"], "_", summarisedDFsubset[rownum, "month"]))+
+  theme_bw() +
+  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(), axis.ticks.y = element_blank(),
+        axis.text.y = element_blank())+
+  facet_wrap(~time)
+
+pdf(paste0(monthNum, ".pdf"))
+print(plot)
+dev.off()
+}

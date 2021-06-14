@@ -34,7 +34,7 @@ summarisedDF <- rawData %>%
 
 
 # Plot footprint ----------------------------------------------------------
-dfx = as.data.frame(matrix(0, 289, 2)) #create zeros dataframe for coordinates of plot
+dfx = as.data.frame(matrix(0, length(MODIScol), 2)) #create zeros dataframe for coordinates of plot
 for (i in 1:17){
   for(j in 1:17) {
     count = (i-1) * 17 + j
@@ -43,35 +43,6 @@ for (i in 1:17){
   }
 }#create coordinates for tile plot
 names(dfx) <- c("ycoor", "xcoor")
-summarisedDFsubset <- summarisedDF[summarisedDF$month==9, ] #subset data to look at just one month
-
-for (i in 1:21){
-rownum = i
-df2 <- df
-  
-df2[,3] = unlist(summarisedDFsubset[rownum,c(3:291)])
-
-# plot with geom_tiles
-plot <- ggplot(data=df2,aes(x=V1,y=V2,fill=V3))+
-  geom_tile()+
-  geom_point(aes(x=9, y=9), colour="white", shape = 23, fill = "white", size=6)+ #plotting the flux tower
-  xlab("")+
-  ylab("")+
-  scale_fill_gradientn(colours = rainbow(4), limits=c(1, 8))+
-  xlim(1, 17)+
-  ylim(1, 17)+
-  ggtitle(paste0(summarisedDFsubset[rownum, "Year"], "_", summarisedDFsubset[rownum, "month"]))+
-  theme_bw() +
-  theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"))+
-  theme(axis.ticks.x = element_blank(),
-        axis.text.x = element_blank(), axis.ticks.y = element_blank(),
-        axis.text.y = element_blank())
-
-pdf(paste0(rownum, ".pdf"))
-print(plot)
-dev.off()
-}
 
 plot_tiles <- function(dfLong, dfWide, rownum){
   plot <- ggplot(data=dfLong,aes(x=V1,y=V2,fill=V3))+
@@ -97,8 +68,6 @@ plot_tiles <- function(dfLong, dfWide, rownum){
   # print(plot)
   # dev.off()
 }
-
-
 plot_tiles(df2, summarisedDFsubset, 8)
 summarisedDFsubset <- summarisedDF[summarisedDF$month==7, ] #subset data to look at just one month
 

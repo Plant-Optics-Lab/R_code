@@ -14,7 +14,7 @@ library(data.table) #this is a faster approach to importing from csv.
 # Import Data and set working directory -----------------------------------
 setwd("/Users/jessie/Documents/2020/Data/MODIS/CZO2/")
 
-rawData_orig <- fread("filtered_scaled_Gpp_500m.csv") #import original rawdata
+rawData_orig <- fread("filtered_scaled_Gpp_500m.csv") #import original rawData
 rawData <- rawData_orig #create copy of rawData file which will be used for working with the data
 MODIScol = rawData %>% #Get the names of the columns with MODIS values. We will have to clean up the data later
   select(V6:V294) %>%
@@ -28,21 +28,19 @@ summarisedDF <- rawData %>%
                 originList = paste(Year, "-01-01", sep = ""), #this is used for converting year and column to date
                 Date = as.Date(DayOfYear, origin = originList), 
                 month = lubridate::month(Date), 
-                across(MODIScol, GPPrescale)) %>% #warnings will pop up if there are non-numeric values as they get converted to "NA". This warning is fine because we want to remove any chanracters in the dataset.
+                across(MODIScol, GPPrescale)) %>% #warnings will pop up if there are non-numeric values as they get converted to "NA". This warning is fine because we want to remove any characters in the dataset.
                         group_by(Year, month) %>% 
                         summarise(across(V6:V294, mean, na.rm = T)) #get the mean per column of data, removing NAs is important
 
 
 # Plot footprint ----------------------------------------------------------
-dfx = as.data.frame(matrix(0, length(MODIScol), 2)) #create zeros dataframe for coordinates of plot
-for (i in 1:17){
-  for(j in 1:17) {
-    count = (i-1) * 17 + j
-    dfx[count, 1] =i
-    dfx[count, 2] =j
-  }
-}#create coordinates for tile plot
-names(dfx) <- c("ycoor", "xcoor")
+#create coordinates for tile plot
+numPixelsWide = sqrt(length(MODIScol))
+dfx <- tibble(
+         ycoor = rep(numPixelsWide:1, each = numPixelsWide), 
+         xcoor = rep(1:numPixelsWide, times = numPixelsWide))
+
+
 
 plot_tiles <- function(dfLong, dfWide, rownum){
   plot <- ggplot(data=dfLong,aes(x=V1,y=V2,fill=V3))+

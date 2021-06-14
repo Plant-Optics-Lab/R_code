@@ -19,13 +19,11 @@ rawData <- rawData_orig #create copy of rawData file which will be used for work
 
 # Create time columns ----------------------------------------------------------
 test <- rawData %>%
-  dplyr::mutate(Year = str_sub(V3, 2, 5), DayOfYear = str_sub(V3, 6, 8))
-
-Year <- as.numeric(tdata$Year)
-originList <- paste0(tdata$Year, "-01-01")
-tdata$DayOfYear <- as.numeric(tdata$DayOfYear)
-tdata$date <- as.Date(tdata$DayOfYear, origin = originList)
-month <- lubridate::month(tdata$date) #create month column
+  dplyr::mutate(Year = as.numeric(paste(str_sub(V3, 2, 5))), 
+                DayOfYear = as.numeric(str_sub(V3, 6, 8)), 
+                originList = paste(Year, "-01-01", sep = ""),
+                Date = as.Date(DayOfYear, origin = originList), 
+                month = lubridate::month(Date))
 
 # Summarise MODIS data to month -------------------------------------------
 ValuesList <- lapply(rawData[,6:294], function(x) as.numeric(x)) #convert all columns to numeric

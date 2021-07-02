@@ -67,7 +67,7 @@ folderListLv1 <- list.dirs("/Users/jessie/Dropbox/2020/Strawberries/FieldExp/Dat
 wc <- "*SVC" #use wildcard (*) to get everything with that partial string. In this example, I have SVC folders within date folders and "SVC" is a unique string for extracting. 
 SVCfolderPaths <- grep(wc, folderListLv1, value=T) #match the pattern so we just have folders containing SVC data. 
 
-SVCfolderPathsShort <- SVCfolderPaths[1:2] ## as a test, restrict to just a few folders to ensure code works. 
+#SVCfolderPathsShort <- SVCfolderPaths[1:2] ## as a test, restrict to just a few folders to ensure code works. 
 
 SVCraw<- SVCfolderPathsShort %>% #after testing out this code, you can simply use "SVCfolderPaths"
   list.files(full.names = T) %>%    # read in all the files individually, using the function read_csv() from the readr package

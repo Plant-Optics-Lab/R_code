@@ -1,11 +1,10 @@
 # Load libraries ----------------------------------------------------------
 
-library(dplyr)
-library(tidyr)
+library(tidyverse)
 library(pavo)
 library(stringr)
 
-# Set paths for data import and R output files ----------------------------
+# Set paths for data import and R output files MANUAL process ----------------------------
 # This script is for wrangling and merging data observations with the SVC data. The following layout for the folder is required for the script to work. 
 #1. Create a new folder for your project. e.g. Jessie_Field_Strawberry. If you are taking measurements across multiple time points, you may want subfolders per measurement day. E.g. Jessie_Field_Strawberry -> 20210514. This will be the general "FolderPath" that R will use for reading in your data. 
 # use for extracting/exporting the data. 
@@ -15,8 +14,8 @@ library(stringr)
 #c) Create a subfolder "R_output". This is will be the working directory and to where all data will be exported. 
 #Please edit the following "FolderPath", "date" and "descripCol" so to match your project/computer.  
 
-FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_05_14/"
-date = "20210514"
+FolderPath <- "/Users/jessie/Dropbox/2020/Strawberries/FieldExp/2021_06_11/"
+date = "20210611"
 descripCol = c(1:13) #in your meta data file (the file containing data entry from making measurements), there will be a series of columns that help you describe the nested structure within your dataset. 
 #If treatments are the same, this could just a single column (just sample ID) or it could be a series of columns, e.g. treatment (pathogen/stress), genotype, phenotype or/and individual. 
 # Please define which columns are simply describing your plants by creating a index for the description columns. 
@@ -39,7 +38,7 @@ completeFun <- function(data, desiredCols) {
 #Remove rows where there will be no leaf level data collected
 meta <- completeFun(meta, "SVCprefix") #This column might need to be changed. 
 
-# Import SVC data ---------------------------------------------------------
+# Import SVC data MANUAL ---------------------------------------------------------
 # Create a list of all the files in the SVC folder. 
 file_list <- list.files(SVCfolderPath) # list all the files in the SVC folder
 
@@ -60,6 +59,24 @@ names(spectralData) <- c("wavelength","reference","radiance","reflectance","SVC_
 
 spectralData$scan <- str_sub(spectralData$SVC_RAW, - 4, - 1)  #Uses stringr package. Grabs the last four digits which indicates scan number
 spectralData$SVCprefix <- str_sub(spectralData$SVC_RAW, 1, - 6)  #Uses stringr package. Grabs the SVC prefic that defines the date of measurement. 
+
+
+# Import SVC data via hierarchy of folders --------------------------------
+folderListLv1 <- list.dirs("/Users/jessie/Dropbox/2020/Strawberries/FieldExp/Data") #List all the data folders. This will be different depending on your project. For example, a strawberry project collected data weekly and so a folder represents a weekly measurement
+
+wc <- "*SVC" #use wildcard (*) to get everything with that partial string. In this example, I have SVC folders within date folders and "SVC" is a unique string for extracting. 
+SVCfolderPaths <- grep(wc, folderListLv1, value=T) #match the pattern so we just have folders containing SVC data. 
+
+SVCfolderPathsShort <- SVCfolderPaths[1:2]
+
+SVCraw<- SVCfolderPathsShort %>% 
+  list.files(full.names = T) %>%    # read in all the files individually, using the function read_csv() from the readr package
+  setNames(nm = .) %>% 
+  map_dfr(read.csv2, sep = "", header=F, skip = 30, .id = "source") %>%
+  mutate_at(c("V1", "V2", "V3", "V4"), as.numeric) %>%
+  rename(wavelength = V1, reference = V2, radiance = V3, reflectance = V4) %>%
+  mutate(scan = str_sub(source, - 8, - 5), 
+         SVCprefix = str_sub(source, - 18, -10))
 
 # Wrangle meta data by adjusting scan number and reshape file-------------------------------------------------------
 #The meta data file is the data entry file for all measurements and includes description information on the samples e.g. with pathogen/genotype etc. Additional measurements could include those from Li-600(stomatal conductance and Fluorescence). Given that we only need the data for the SVC, we will extract this data only and then reshape the data so that it can be combined with the actual spectra data. 

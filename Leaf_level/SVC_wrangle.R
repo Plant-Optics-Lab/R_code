@@ -71,12 +71,12 @@ SVCfolderPathsShort <- SVCfolderPaths[1:2]
 
 SVCraw<- SVCfolderPathsShort %>% 
   list.files(full.names = T) %>%    # read in all the files individually, using the function read_csv() from the readr package
-  setNames(nm = .) %>% 
-  map_dfr(read.csv2, sep = "", header=F, skip = 30, .id = "source") %>%
-  mutate_at(c("V1", "V2", "V3", "V4"), as.numeric) %>%
-  rename(wavelength = V1, reference = V2, radiance = V3, reflectance = V4) %>%
-  mutate(scan = str_sub(source, - 8, - 5), 
-         SVCprefix = str_sub(source, - 18, -10))
+  setNames(nm = .) %>% #set the names of the files 
+  map_dfr(read.csv2, sep = "", header=F, skip = 30, .id = "source") %>% #read in the csv files and append to a data frame
+  mutate_at(c("V1", "V2", "V3", "V4"), as.numeric) %>% #convert all spectral data to numeric
+  rename(wavelength = V1, reference = V2, radiance = V3, reflectance = V4) %>% #rename the columns
+  mutate(scan = str_sub(source, - 8, - 5), #get the scan number for the file
+         SVCprefix = str_sub(source, - 18, -10)) #get the SVC prefix
 
 # Wrangle meta data by adjusting scan number and reshape file-------------------------------------------------------
 #The meta data file is the data entry file for all measurements and includes description information on the samples e.g. with pathogen/genotype etc. Additional measurements could include those from Li-600(stomatal conductance and Fluorescence). Given that we only need the data for the SVC, we will extract this data only and then reshape the data so that it can be combined with the actual spectra data. 
